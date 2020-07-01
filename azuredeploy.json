@@ -184,7 +184,7 @@
         }, */
 
         {
-            "name": "ubuntuVM1/customScript1",
+            "name": "Nginx-Service-Proxy/customScript1",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "2019-07-01",
             "location": "[resourceGroup().location]",
