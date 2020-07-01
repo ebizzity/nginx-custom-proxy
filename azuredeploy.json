@@ -115,7 +115,8 @@
             "apiVersion": "2019-07-01",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-                "[resourceId('Microsoft.Network/networkInterfaces', 'ubuntuVM1-NetworkInterface')]"
+                "[resourceId('Microsoft.Network/networkInterfaces', 'ubuntuVM1-NetworkInterface')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', toLower(parameters('storageaccountname')))]"
             ],
             "tags": {
                 "displayName": "Nginx-Service-Proxy"
@@ -152,7 +153,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": true,
-                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', toLower('ubuntuVM1storage'))).primaryEndpoints.blob]"
+                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', toLower(parameters('storageaccountname')))).primaryEndpoints.blob]"
                     }
                 }
             }
@@ -191,7 +192,7 @@
                 "displayName": "customScript1 for Linux VM"
             },
             "dependsOn": [
-                "[resourceId('Microsoft.Compute/virtualMachines', 'ubuntuVM1')]"
+                "[resourceId('Microsoft.Compute/virtualMachines', 'Nginx-Service-Proxy')]"
             ],
             "properties": {
                 "publisher": "Microsoft.Azure.Extensions",
