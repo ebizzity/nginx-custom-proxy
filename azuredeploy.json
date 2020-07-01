@@ -1,19 +1,171 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
-    "parameters": {},
+    "parameters": {
+        "serviceIP": {
+            "type": "string",
+            "metadata": {
+                "description": "IP Address of Service to Proxy"
+            }
+        },
+        "port": {
+            "type": "string",
+            "metadata": {
+                "description": "TCP/UDP Port of Service"
+            }
+        },
+        "protocol": {
+            "type": "string",
+            "metadata": {
+                "description": "Protocol - TCP or UDP"
+            },
+            "allowedValues": [
+                "TCP",
+                "UDP"
+            ],
+            "defaultValue": "TCP"
+        },
+        "storageaccountname": {
+            "type": "string",
+            "metadata": {
+                "description": "storageaccountname"
+            }
+        },
+        "vnetrg": {
+            "type": "string",
+            "metadata": {
+                "description": "RG Name of VNET"
+            }
+        },
+        "vnetname": {
+            "type": "string",
+            "metadata": {
+                "description": "vnetname to place proxy"
+            }
+        },
+        "subnetname": {
+            "type": "string",
+            "metadata": {
+                "description": "subnetname to place proxy"
+            }
+        },
+        "vmUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "VMUsername"
+            }
+        },
+        "vmPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "VMPassword"
+            }
+        }
+    },
     "functions": [],
     "variables": {
-        "nginx-installcmd": "",
-        "artifactslocationbase": "",
-        "installscript": ""
+        "nginx-installcmd": "[concat('nginxinstall.sh', ' ',parameters('serviceIP'), ' ', parameters('port'), ' ', parameters('protocol'))]",
+        "artifactslocationbase": "https://raw.githubusercontent.com/ebizzity/nginx-custom-proxy/master/scripts/",
+        "installscript": "nginxinstall.sh"
     },
     "resources": [
+        
+        {
+            "name": "[toLower(parameters('storageaccountname'))]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "displayName": "ubuntuVM1 Storage Account"
+            },
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage"
+        },
+        
+        {
+            "name": "ubuntuVM1-NetworkInterface",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+            ],
+            "tags": {
+                "displayName": "ubuntuVM1-NetworkInterface"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipConfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetRG'), parameters('vnetName'), parameters('subnetname'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Nginx-Service-Proxy",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', 'ubuntuVM1-NetworkInterface')]"
+            ],
+            "tags": {
+                "displayName": "Nginx-Service-Proxy"
+            },
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "Standard_B2ms"
+                },
+                "osProfile": {
+                    "computerName": "nginx-service-proxy",
+                    "adminUsername": "[parameters('vmUsername')]",
+                    "adminPassword": "[parameters('vmPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "UbuntuServer",
+                        "sku": "16.04-LTS",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "ubuntuVM1-OSDisk",
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', 'ubuntuVM1-NetworkInterface')]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": true,
+                        "storageUri": "[reference(resourceId('Microsoft.Storage/storageAccounts/', toLower('ubuntuVM1storage'))).primaryEndpoints.blob]"
+                    }
+                }
+            }
+        },
+        
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "2018-06-01",
-            "name": "[concat(parameters('jumpboxName'), '/prepare-install-script')]",
-            "location": "[parameters('location')]",
+            "name": "Install Nginx",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Compute/virtualMachines','Nginx-Service-Proxy')]"
+            ],
             "properties": {
                 "publisher": "Microsoft.Azure.Extensions",
                 "type": "CustomScript",
@@ -21,7 +173,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[concat(variables('artifactslocationbase'),'')]"
+                        "[concat(variables('artifactslocationbase'),variables('installscript'))]"
                     ]
                 },
                 "protectedSettings": {
