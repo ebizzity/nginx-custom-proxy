@@ -29,7 +29,7 @@ echo "Hello World from host" $HOSTNAME "!" | sudo tee -a /var/www/html/index.htm
 sudo nginx -t && sudo service nginx reload
 
 # Find IP address for NIC
-eth0_ip="$(ifconfig eth0 | grep 'inet' | cut -d: -f2 | awk '{print $2}')"
+eth0_ip="$(ifconfig eth0 | grep 'inet' | grep -v inet6 | cut -d: -f2 | awk '{print $1}')"
 
 # Configure Ngnix to forward DNS request to Azure DNS resolover
 
