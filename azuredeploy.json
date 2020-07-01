@@ -14,6 +14,12 @@
                 "description": "TCP/UDP Port of Service"
             }
         },
+        "listenport": {
+            "type": "string",
+            "metadata": {
+                "description": "Listener TCP/UDP Port"
+            }
+        },
         "protocol": {
             "type": "string",
             "metadata": {
@@ -64,7 +70,7 @@
     },
     "functions": [],
     "variables": {
-        "nginx-installcmd": "[concat('nginxinstall.sh', ' ',parameters('serviceIP'), ' ', parameters('port'), ' ', parameters('protocol'))]",
+        "nginx-installcmd": "[concat('nginxinstall.sh', ' ',parameters('serviceIP'), ' ', parameters('port'), ' ', parameters('protocol'), ' ', parameters('listenport'))]",
         "artifactslocationbase": "https://raw.githubusercontent.com/ebizzity/nginx-custom-proxy/master/scripts/",
         "installscript": "nginxinstall.sh"
     },

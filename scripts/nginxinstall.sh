@@ -43,7 +43,7 @@ if [ $3 == 'udp' ]
                         server $1:$2;
                 }
                 server {
-                        listen $eth0_ip:$2 $3;
+                        listen $eth0_ip:$4 $3;
                         proxy_pass dns_servers;
                         proxy_responses 1;
                         error_log  /var/log/nginx/dns.log info;
@@ -57,7 +57,7 @@ else
                         server $1:$2;
                 }
                 server {
-                        listen $eth0_ip:$2;
+                        listen $eth0_ip:$4;
                         proxy_pass dns_servers;
                         proxy_responses 1;
                         error_log  /var/log/nginx/dns.log info;
