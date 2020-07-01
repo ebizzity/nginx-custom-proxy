@@ -20,10 +20,10 @@
                 "description": "Protocol - TCP or UDP"
             },
             "allowedValues": [
-                "TCP",
-                "UDP"
+                "tcp",
+                "udp"
             ],
-            "defaultValue": "TCP"
+            "defaultValue": "tcp"
         },
         "storageaccountname": {
             "type": "string",
