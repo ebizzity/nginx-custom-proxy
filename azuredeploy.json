@@ -161,7 +161,7 @@
         {
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "apiVersion": "2018-06-01",
-            "name": "Install Nginx",
+            "name": "Install-Nginx",
             "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[resourceId('Microsoft.Compute/virtualMachines','Nginx-Service-Proxy')]"
